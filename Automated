@@ -30,3 +30,152 @@ def create_repl_project(project_name, language="python3"):
 
 # Example of creating a Repl project
 create_repl_project("NewAutomatedProject")
+
+
+import json
+import requests  # Required import for handling HTTP requests
+
+# Constants for Replit API interaction
+REPLIT_API_URL = "https://api.replit.com/v0"
+API_TOKEN = "your_replit_api_token_here"
+DEFAULT_LANGUAGE = "python3"
+PROJECT_DESCRIPTION = "created automatically via MCGCreate"
+DEFAULT_PRIVATE_STATUS = False
+
+# Headers for Replit API requests
+HEADERS = {
+    'Authorization': f'Bearer {API_TOKEN}',
+    'Content-Type': 'application/json'
+}
+
+# Function to create a new Repl project on Replit
+def create_repl_project(project_name, language=DEFAULT_LANGUAGE, private=DEFAULT_PRIVATE_STATUS):
+    data = {
+        'title': project_name,
+        'language': language,
+        'description': f'{project_name} {PROJECT_DESCRIPTION}',
+        'private': private
+    }
+    
+    try:
+        response = requests.post(f'{REPLIT_API_URL}/repls', headers=HEADERS, json=data)
+        response.raise_for_status()  # Will raise an error for 4xx/5xx responses
+
+        if response.status_code == 200:
+            print(f"Repl '{project_name}' created successfully!")
+            return response.json()  # Return project details
+        else:
+            print(f"Unexpected response code {response.status_code} while creating Repl '{project_name}': {response.text}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred while creating Repl '{project_name}': {http_err}")
+    except Exception as err:
+        print(f"An error occurred while creating Repl '{project_name}': {err}")
+
+    return None
+
+# Function to list all Repl projects
+def list_repl_projects():
+    try:
+        response = requests.get(f'{REPLIT_API_URL}/repls', headers=HEADERS)
+        response.raise_for_status()
+
+        if response.status_code == 200:
+            projects = response.json()  # Assuming response returns a list of projects
+            print("List of Repl projects:")
+            for project in projects:
+                print(f" - {project['title']} (ID: {project['id']})")
+            return projects
+        else:
+            print(f"Unexpected response code {response.status_code} while fetching projects: {response.text}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred while fetching projects: {http_err}")
+    except Exception as err:
+        print(f"An error occurred while fetching projects: {err}")
+
+    return None
+
+# Function to retrieve details of a single Repl project
+def get_repl_project_details(project_id):
+    try:
+        response = requests.get(f'{REPLIT_API_URL}/repls/{project_id}', headers=HEADERS)
+        response.raise_for_status()
+
+        if response.status_code == 200:
+            print(f"Details of Repl '{project_id}':")
+            return response.json()  # Return detailed project data
+        else:
+            print(f"Unexpected response code {response.status_code} while fetching details of Repl '{project_id}': {response.text}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred while fetching details of Repl '{project_id}': {http_err}")
+    except Exception as err:
+        print(f"An error occurred while fetching details of Repl '{project_id}': {err}")
+
+    return None
+
+# Function to update an existing Repl project
+def update_repl_project(project_id, new_title=None, new_language=None, new_private_status=None):
+    data = {}
+    if new_title:
+        data['title'] = new_title
+    if new_language:
+        data['language'] = new_language
+    if new_private_status is not None:
+        data['private'] = new_private_status
+
+    try:
+        response = requests.put(f'{REPLIT_API_URL}/repls/{project_id}', headers=HEADERS, json=data)
+        response.raise_for_status()
+
+        if response.status_code == 200:
+            print(f"Repl '{project_id}' updated successfully!")
+            return response.json()  # Return updated project details
+        else:
+            print(f"Unexpected response code {response.status_code} while updating Repl '{project_id}': {response.text}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred while updating Repl '{project_id}': {http_err}")
+    except Exception as err:
+        print(f"An error occurred while updating Repl '{project_id}': {err}")
+
+    return None
+
+# Function to delete a Repl project by ID
+def delete_repl_project(project_id):
+    try:
+        response = requests.delete(f'{REPLIT_API_URL}/repls/{project_id}', headers=HEADERS)
+        response.raise_for_status()
+
+        if response.status_code == 204:  # No content on successful deletion
+            print(f"Repl with ID {project_id} deleted successfully!")
+            return True
+        else:
+            print(f"Unexpected response code {response.status_code} while deleting Repl: {response.text}")
+            return False
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred while deleting Repl with ID {project_id}: {http_err}")
+    except Exception as err:
+        print(f"An error occurred while deleting Repl with ID {project_id}: {err}")
+
+    return False
+
+# Example usage of creating a Repl project
+create_repl_project("NewAutomatedProject")
+
+# Example usage of listing all Repl projects
+projects = list_repl_projects()
+
+# Example usage of retrieving project details by ID
+if projects:
+    first_project_id = projects[0]['id']  # Assume the first project has the ID
+    get_repl_project_details(first_project_id)
+
+# Example usage of updating a Repl project
+if projects:
+    update_repl_project(first_project_id, new_title="UpdatedProjectName")
+
+# Example usage of deleting a Repl project (provide a valid project ID)
+if projects:
+    delete_repl_project(first_project_id)
